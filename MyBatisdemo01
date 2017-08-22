@@ -1,0 +1,83 @@
+--mybatis.xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+  
+  <configuration>
+  	<environments default="oracle">
+  		<environment id="oracle">
+  			<transactionManager type="JDBC"/>
+  				<dataSource type="POOLED">
+  					<property name="driver" value="oracle.jdbc.driver.OracleDriver"/>
+  					<property name="url" value="jdbc:oracle:thin:@localhost:1521:orcl"/>
+  					<property name="username" value="lyl"/>
+  					<property name="password" value="123456"/>
+  				</dataSource>
+  		</environment>
+  	</environments>
+  	
+  	<mappers>
+  		<mapper resource="org/mapper/UserInfo_Mapper.xml"/>
+  	</mappers>
+  	
+  </configuration>
+  --UserInfo_Mapper.xml
+  <?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="user">
+  	<select id="getUserAll" resultType="org.bean.UserInfo">
+  		select * from userinfo
+  	</select>
+  	
+  	<select id="getUserById" resultType="org.bean.UserInfo">
+  		select * from userinfo where id=#{id}
+  	</select>
+  	
+  	<select id="getUserByName" resultType="org.bean.UserInfo">
+  		select * from userinfo where name like '%${value}%'
+  	</select>
+  	
+  	<select id="add" resultType="org.bean.UserInfo">
+  		insert into userinfo values(#{id},#{name},#{pwd},#{rolesid})
+  	</select>
+  	
+  	<select id="deleteById" resultType="org.bean.UserInfo">
+  		delete userinfo where id=#{id}
+  	</select>
+  	
+  	<update id="update">
+		update userinfo set name=#{name},pwd=#{pwd},rolesid=#{rolesid} where id=#{id}
+	</update>
+  </mapper>
+  --test测试类
+  public class test {
+	public static void main(String[] args) throws IOException {
+		String resource = "mybatis.xml";
+		InputStream inputStream = Resources.getResourceAsStream(resource);
+		SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+	
+		SqlSession session= sqlSessionFactory.openSession();
+		
+		UserInfo user=session.selectOne("user.getUserById",5);
+		
+		user.setId(5);
+		user.setName("小红红");
+		user.setPwd("9999");
+		user.setRolesid(4);
+		//session.update("user.update",user);
+		//session.delete("user.deleteById",13);
+		Map<String,Object> map=new HashMap<String,Object>();
+		map.put("pwd", "aaa");
+		map.put("name", "澳洲");
+	
+		map.put("rolesid", 2);
+		map.put("id",13);
+		System.out.println(session.insert("user.add",map));
+		//System.out.println(session.selectList("user.getUserByName","黑"));
+		session.commit();
+		session.close();
+	}
+}
